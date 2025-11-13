@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-"""
-Galaxy S3 Simple WiFi Recorder - Fixed Version
-Handles already connected devices
-"""
 
 import subprocess
 import threading
@@ -19,11 +15,11 @@ class SimpleWiFiRecorder:
         self.is_recording = False
         self.phone_ip = None
         
-        # Setup records directory
+        
         os.makedirs(self.records_dir, exist_ok=True)
         os.makedirs(f"{self.records_dir}/logs", exist_ok=True)
         
-        # Setup logging
+        
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s',
@@ -43,13 +39,13 @@ class SimpleWiFiRecorder:
             print("🔧 Step 1: Checking current connections...")
             result = subprocess.run(['adb', 'devices'], capture_output=True, text=True, timeout=10)
             
-            # Check if we're already connected via WiFi
-            if '192.168.43.7:5555' in result.stdout and 'device' in result.stdout:
+            
+            if '192.168.XX.XX:5555' in result.stdout and 'device' in result.stdout:
                 print("✅ Already connected via WiFi to 192.168.43.7")
                 self.phone_ip = "192.168.43.7"
                 return True
             
-            # Check if connected via USB
+            
             if any('device' in line and '192.168' not in line for line in result.stdout.split('\n')):
                 print("✅ Device found via USB, setting up WiFi...")
                 
@@ -68,7 +64,7 @@ class SimpleWiFiRecorder:
                 
                 if "connected" in result.stdout:
                     print("✅ WiFi ADB connected successfully!")
-                    self.phone_ip = "192.168.43.7"
+                    self.phone_ip = "192.168.XX:XX"
                     return True
                 else:
                     print(f"❌ WiFi connection failed: {result.stdout}")
@@ -97,38 +93,39 @@ class SimpleWiFiRecorder:
             
             print(f"🎥 Starting recording: {timestamp}")
             
-            # Start camera app
+            
             print("📱 Launching camera...")
             subprocess.run(['adb', 'shell', 'am', 'start', '-a', 'android.media.action.VIDEO_CAMERA'], 
                          timeout=15)
             time.sleep(5)
             
-            # Start recording
+            
+            
             print("🔴 Starting recording...")
             subprocess.run(['adb', 'shell', 'input', 'keyevent', 'KEYCODE_CAMERA'], timeout=10)
             time.sleep(3)
             
-            # Record for 29 minutes
-            print("⏱️ Recording for 29 minutes...")
-            for i in range(60):  # 29 minutes
+            
+            print("⏱️ Recording for X minutes...")
+            for i in range(60): 
                 if not self.is_recording:
                     break
-                if i % 300 == 0:  # Log every 5 minutes
+                if i % 300 == 0:
                     minutes = i // 60
                     print(f"⏰ Recording... {minutes}/29 minutes")
                 time.sleep(1)
             
-            # Stop recording
+            
             print("⏹️ Stopping recording...")
             subprocess.run(['adb', 'shell', 'input', 'keyevent', 'KEYCODE_CAMERA'], timeout=10)
             time.sleep(5)
             
-            # Close camera
+            
             subprocess.run(['adb', 'shell', 'input', 'keyevent', 'KEYCODE_BACK'], timeout=5)
             subprocess.run(['adb', 'shell', 'input', 'keyevent', 'KEYCODE_BACK'], timeout=5)
             time.sleep(3)
             
-            # Find and transfer video
+
             print("📤 Transferring video...")
             result = subprocess.run(['adb', 'shell', 'ls', '/Eigene_Dateien/DCIM/Camera/.mp4'], 
                                   capture_output=True, text=True, timeout=60)
@@ -137,12 +134,12 @@ class SimpleWiFiRecorder:
                 latest_video = result.stdout.split('\n')[0].strip()
                 print(f"📹 Found video: {latest_video}")
                 
-                # Transfer file
+                
                 transfer_result = subprocess.run(['adb', 'pull', latest_video, f"{self.records_dir}/{local_filename}"], 
                                              timeout=120, capture_output=True, text=True)
                 
                 if transfer_result.returncode == 0:
-                    # Clean up phone
+                    
                     subprocess.run(['adb', 'shell', 'rm', latest_video], timeout=30)
                     print(f"✅ Success: {local_filename}")
                     return True
@@ -165,7 +162,7 @@ class SimpleWiFiRecorder:
         segment_count = 0
         successful_recordings = 0
         
-        while self.is_recording and (time.time() - start_time) < 36000:  # 10 hours
+        while self.is_recording and (time.time() - start_time) < 36000:
             segment_count += 1
             elapsed = (time.time() - start_time) / 3600
             remaining = 10 - elapsed
@@ -179,7 +176,7 @@ class SimpleWiFiRecorder:
             else:
                 print(f"❌ Segment {segment_count} failed")
             
-            # Brief pause
+        
             if self.is_recording:
                 print("⏳ Preparing next segment...")
                 time.sleep(5)
@@ -196,7 +193,7 @@ class SimpleWiFiRecorder:
         
         self.is_recording = True
         
-        # Start in background thread
+        
         record_thread = threading.Thread(target=self.continuous_recording)
         record_thread.daemon = True
         record_thread.start()
@@ -245,7 +242,7 @@ def main():
     print("IP: 192.168.43.7")
     print("=" * 50)
     
-    # Check ADB
+
     try:
         subprocess.run(['adb', 'version'], capture_output=True, check=True)
     except:
