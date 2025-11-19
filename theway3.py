@@ -42,7 +42,7 @@ class theway:
             else:
                 print(" Invalid IP address format. Please try again.")
 
-    def setup_wifi_adb_simple(self)
+    def setup_wifi_adb_simple(self):
     
         try:
             if not self.phone_ip:
